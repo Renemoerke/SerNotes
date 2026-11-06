@@ -299,7 +299,6 @@ details[open] summary h2::before { transform: rotate(90deg); }
     <div class="meta" id="micRow" hidden>
       <label for="micSelect">Mikrofon</label>
       <select id="micSelect"></select>
-      <button class="clear-date" id="findMics" type="button" hidden>Mikrofone suchen</button>
     </div>
     <p class="status" id="status" aria-live="polite">Tipp: „Wichtig: Zahnarzt anrufen bis Freitag“ oder „Nudeln abgießen in 10 Minuten“.</p>
     <div class="meta">
@@ -490,7 +489,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
     rec.lang = "de-DE";
     rec.continuous = true;
     rec.interimResults = true;
-    rec.onstart = () => { listening = true; if (!findBtn.hidden) loadMics(false); composer.classList.add("listening"); mic.setAttribute("aria-label", "Aufnahme stoppen"); statusEl.textContent = "Ich höre zu … Zum Beenden nochmal tippen."; };
+    rec.onstart = () => { listening = true; loadMics(); composer.classList.add("listening"); mic.setAttribute("aria-label", "Aufnahme stoppen"); statusEl.textContent = "Ich höre zu … Zum Beenden nochmal tippen."; };
     rec.onresult = e => {
       let finalTxt = "", interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -545,62 +544,30 @@ details[open] summary h2::before { transform: rotate(90deg); }
   const MIC_KEY = "sprachnotizen.mic";
   const PREFERRED = /usb 2\.0 camera/i;
   const micSelect = $("micSelect");
-  const findBtn = $("findMics");
   let stream = null;
   function stopStream() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
 
-  async function loadMics(askPermission) {
-    if (!SR) return;
-    $("micRow").hidden = false;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-      micSelect.replaceChildren(new Option("Standard-Mikrofon des Systems", "default"));
-      micSelect.disabled = true;
-      statusEl.textContent = location.protocol === "https:"
-        ? "Dieser Browser erlaubt keine Mikrofon-Auswahl."
-        : "Mikrofon-Auswahl geht nur, wenn die Seite über https:// geöffnet ist (aktuell: " + location.protocol + "//).";
-      return;
-    }
+  // Die Liste füllt sich von selbst, sobald der Browser das Mikrofon erlaubt hat (z. B. nach der ersten Aufnahme).
+  // Vorher bleibt sie ausgeblendet – das Mikrofon wählt dann der Browser in seiner eigenen Abfrage.
+  async function loadMics() {
+    if (!SR || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
     try {
-      if (askPermission) {
-        statusEl.textContent = "Bitte den Mikrofonzugriff im Browser erlauben …";
-        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-        s.getTracks().forEach(t => t.stop());
-      }
       const mics = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
-      const hasLabels = mics.some(d => d.label);
-      if (!hasLabels && !askPermission && navigator.permissions) {
-        try {
-          const p = await navigator.permissions.query({ name: "microphone" });
-          if (p.state === "granted") return loadMics(true);
-        } catch (e) {}
-      }
-      let saved = ""; try { saved = localStorage.getItem(MIC_KEY) || ""; } catch (e) {}
-      micSelect.replaceChildren(new Option("Standard-Mikrofon des Systems", "default"));
-      micSelect.disabled = false;
       const real = mics.filter(d => d.label && d.deviceId && d.deviceId !== "default" && d.deviceId !== "communications");
+      if (!real.length) { $("micRow").hidden = true; return; }
+      let saved = ""; try { saved = localStorage.getItem(MIC_KEY) || ""; } catch (e) {}
+      const keep = micSelect.value;
+      micSelect.replaceChildren(new Option("Standard-Mikrofon des Systems", "default"));
       real.forEach(d => micSelect.append(new Option(d.label, d.deviceId)));
-      findBtn.hidden = hasLabels;
-      if (hasLabels) {
-        const preferred = real.find(d => PREFERRED.test(d.label));
-        if (saved && real.some(d => d.deviceId === saved)) micSelect.value = saved;
-        else if (preferred) micSelect.value = preferred.deviceId;
-        if (askPermission) statusEl.textContent = real.length + (real.length === 1 ? " Mikrofon" : " Mikrofone") + " gefunden.";
-      } else if (askPermission) {
-        statusEl.textContent = "Der Browser hat keine Mikrofone gemeldet. Prüfe, ob die Kamera eingesteckt ist.";
-      }
-    } catch (e) {
-      findBtn.hidden = false;
-      statusEl.textContent = {
-        NotAllowedError: "Mikrofonzugriff wurde abgelehnt. Erlaube ihn über das Schloss-Symbol in der Adressleiste und tippe dann nochmal auf „Mikrofone suchen“.",
-        NotFoundError: "Kein Mikrofon gefunden. Prüfe, ob die Kamera eingesteckt ist.",
-        NotReadableError: "Das Mikrofon wird gerade von einem anderen Programm benutzt (z. B. Teams oder Zoom)."
-      }[e.name] || "Mikrofone konnten nicht gelesen werden (" + e.name + ").";
-    }
+      const preferred = real.find(d => PREFERRED.test(d.label));
+      if (keep && real.some(d => d.deviceId === keep)) micSelect.value = keep;
+      else if (saved && (saved === "default" || real.some(d => d.deviceId === saved))) micSelect.value = saved;
+      else if (preferred) micSelect.value = preferred.deviceId;
+      $("micRow").hidden = false;
+    } catch (e) { $("micRow").hidden = true; }
   }
-  micSelect.addEventListener("change", () => { try { localStorage.setItem(MIC_KEY, micSelect.value); } catch (e) {} });
-  findBtn.addEventListener("click", () => loadMics(true));
-  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener("devicechange", () => loadMics(false));
-  loadMics(false);
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener("devicechange", () => loadMics());
+  loadMics();
 
   // ---------- Einstellungen ----------
   const SET_KEY = "sprachnotizen.settings";
@@ -984,7 +951,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // ---------- Version & Updates ----------
   // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
-  const APP_VERSION = "1.4.0";
+  const APP_VERSION = "1.4.1";
   const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
   const REPO_URL = "https://github.com/Renemoerke/SerNotes";
   const SEEN_KEY = "sprachnotizen.seenVersion", CHECK_KEY = "sprachnotizen.lastCheck";
@@ -992,6 +959,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
   const LOCAL_CHANGELOG = [
+    { version: "1.4.1", date: "2026-11-06", changes: ["Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage"] },
     { version: "1.4.0", date: "2026-11-06", changes: ["Versionsanzeige, „Was ist neu?“ und Update-Prüfung über GitHub"] }
   ];
 

@@ -1,7 +1,15 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.4.1",
+      "date": "2026-11-06",
+      "changes": [
+        "Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage",
+        "Die Mikrofon-Liste erscheint erst, wenn der Browser das Mikrofon erlaubt hat, und füllt sich dann von selbst"
+      ]
+    },
     {
       "version": "1.4.0",
       "date": "2026-11-06",

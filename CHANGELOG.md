@@ -1,5 +1,9 @@
 # Changelog – SerNotes
 
+## 1.4.1 – 06.11.2026
+- Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage
+- Die Mikrofon-Liste erscheint erst, wenn der Browser das Mikrofon erlaubt hat, und füllt sich dann von selbst
+
 ## 1.4.0 – 06.11.2026
 - Versionsanzeige unten auf der Seite
 - „Was ist neu?“ zeigt den Changelog
