@@ -1,7 +1,14 @@
 {
-  "version": "1.6.1",
+  "version": "1.6.2",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.6.2",
+      "date": "2026-11-06",
+      "changes": [
+        "Neue Versionen werden sofort erkannt – vorher konnte es durch den GitHub-Zwischenspeicher bis zu 5 Minuten dauern"
+      ]
+    },
     {
       "version": "1.6.1",
       "date": "2026-11-06",
