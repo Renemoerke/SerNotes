@@ -1,5 +1,9 @@
 # Changelog – SerNotes
 
+## 1.5.0 – 06.11.2026
+- Wenn du die Datei direkt vom Rechner öffnest, bietet die Update-Leiste die neue Version zum Herunterladen an
+- Auf dem Webspace prüft „Jetzt aktualisieren“ erst, ob die neue Version schon auf dem Server liegt, und sagt sonst, woran es hängt
+
 ## 1.4.1 – 06.11.2026
 - Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage
 - Die Mikrofon-Liste erscheint erst, wenn der Browser das Mikrofon erlaubt hat, und füllt sich dann von selbst

@@ -1,7 +1,15 @@
 {
-  "version": "1.4.1",
+  "version": "1.5.0",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.5.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Wenn du die Datei direkt vom Rechner öffnest, bietet die Update-Leiste die neue Version zum Herunterladen an",
+        "Auf dem Webspace prüft „Jetzt aktualisieren“ erst, ob die neue Version schon auf dem Server liegt, und sagt sonst, woran es hängt"
+      ]
+    },
     {
       "version": "1.4.1",
       "date": "2026-11-06",

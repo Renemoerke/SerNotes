@@ -217,6 +217,8 @@ details[open] summary h2::before { transform: rotate(90deg); }
 .update-in { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .update-in p { margin: 0; flex: 1 1 14em; min-width: 0; font-weight: 600; }
 .update-in .add { margin-left: 0; background: var(--brand-fg); color: var(--brand); }
+.update-in .add[disabled] { opacity: .6; cursor: wait; }
+.update-in .update-msg { flex-basis: 100%; font-weight: 400; font-size: .9rem; opacity: .95; }
 .modal-back {
   position: fixed; inset: 0; z-index: 30; background: rgb(8 14 24 / .55); display: grid; place-items: center;
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
@@ -354,8 +356,10 @@ details[open] summary h2::before { transform: rotate(90deg); }
 <div class="update-bar" id="updateBar" role="status" hidden>
   <div class="update-in">
     <p id="updateText"></p>
+    <p class="update-msg" id="updateMsg" hidden></p>
     <button type="button" class="btn-ghost" id="updateNews">Änderungen</button>
     <button type="button" class="add" id="updateReload">Jetzt aktualisieren</button>
+    <button type="button" class="add" id="updateDownload" hidden>Neue Version herunterladen</button>
   </div>
 </div>
 
@@ -951,14 +955,17 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // ---------- Version & Updates ----------
   // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
-  const APP_VERSION = "1.4.1";
+  const APP_VERSION = "1.5.0";
   const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
   const REPO_URL = "https://github.com/Renemoerke/SerNotes";
+  const APP_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/index.html";
+  const IS_LOCAL = location.protocol === "file:";
   const SEEN_KEY = "sprachnotizen.seenVersion", CHECK_KEY = "sprachnotizen.lastCheck";
   $("appVersion").textContent = "v" + APP_VERSION;
 
   // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
   const LOCAL_CHANGELOG = [
+    { version: "1.5.0", date: "2026-11-06", changes: ["Lokal geöffnet: Update als Datei herunterladen", "Webspace: „Jetzt aktualisieren“ prüft erst, ob die neue Version schon auf dem Server liegt"] },
     { version: "1.4.1", date: "2026-11-06", changes: ["Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage"] },
     { version: "1.4.0", date: "2026-11-06", changes: ["Versionsanzeige, „Was ist neu?“ und Update-Prüfung über GitHub"] }
   ];
@@ -1013,6 +1020,9 @@ details[open] summary h2::before { transform: rotate(90deg); }
       try { localStorage.setItem(CHECK_KEY, String(Date.now())); } catch (e) {}
       if (cmpVer(remote.version, APP_VERSION) > 0) {
         $("updateText").textContent = "Version " + remote.version + " ist verfügbar (du hast " + APP_VERSION + ").";
+        $("updateReload").hidden = IS_LOCAL;
+        $("updateDownload").hidden = !IS_LOCAL;
+        $("updateMsg").hidden = true;
         $("updateBar").hidden = false;
         st.textContent = "";
       } else if (manual) st.textContent = "Du hast die neueste Version (" + APP_VERSION + ").";
@@ -1022,9 +1032,45 @@ details[open] summary h2::before { transform: rotate(90deg); }
   }
   $("checkUpdate").addEventListener("click", () => checkUpdate(true));
   $("updateNews").addEventListener("click", () => showNews(remote && remote.changelog));
-  $("updateReload").addEventListener("click", () => {
-    // Neu laden ohne Browser-Cache. Die neue Datei liegt nach dem automatischen Upload schon auf dem Webspace.
-    const u = new URL(location.href); u.searchParams.set("v", remote ? remote.version : Date.now()); location.replace(u.toString());
+  function updateMsg(text) { const m = $("updateMsg"); m.textContent = text; m.hidden = false; }
+
+  // Webspace: erst prüfen, ob die neue Datei wirklich schon auf dem Server liegt, dann neu laden.
+  $("updateReload").addEventListener("click", async () => {
+    const btn = $("updateReload"); btn.disabled = true; btn.textContent = "Prüfe …";
+    let serverVersion = null;
+    try {
+      const r = await fetch(location.pathname + "?check=" + Date.now(), { cache: "no-store" });
+      const m = (await r.text()).match(/const APP_VERSION = "([0-9.]+)"/);
+      serverVersion = m ? m[1] : null;
+    } catch (e) {}
+    btn.disabled = false; btn.textContent = "Jetzt aktualisieren";
+    if (serverVersion && cmpVer(serverVersion, APP_VERSION) > 0 || !serverVersion) {
+      const u = new URL(location.href); u.searchParams.set("v", remote ? remote.version : Date.now()); location.replace(u.toString());
+      return;
+    }
+    $("updateDownload").hidden = false;
+    updateMsg("Auf diesem Server liegt noch Version " + serverVersion + ". Der automatische Upload hat diesen Ordner noch nicht erreicht – prüfe bei GitHub den Zielordner (FTP_DIR). Du kannst die neue Datei auch herunterladen.");
+  });
+
+  // Lokal (Datei vom Desktop): neue Datei von GitHub holen und als Download anbieten.
+  $("updateDownload").addEventListener("click", async () => {
+    const btn = $("updateDownload"); btn.disabled = true; btn.textContent = "Lade …";
+    try {
+      const r = await fetch(APP_URL + "?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const html = await r.text();
+      const m = html.match(/const APP_VERSION = "([0-9.]+)"/);
+      if (!m) throw new Error("Datei unvollständig");
+      const name = decodeURIComponent(location.pathname.split("/").pop() || "") || "SerNotes.html";
+      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      const a = document.createElement("a"); a.href = url; a.download = /\.html?$/i.test(name) ? name : "SerNotes.html";
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      updateMsg("Version " + m[1] + " ist heruntergeladen (Ordner „Downloads“). Ersetze damit die Datei, die du gerade geöffnet hast, und öffne sie neu. Deine Notizen bleiben erhalten, solange du denselben Browser nutzt.");
+    } catch (e) {
+      updateMsg("Download fehlgeschlagen (" + e.message + "). Die neue Datei gibt es auch auf GitHub: " + REPO_URL);
+    }
+    btn.disabled = false; btn.textContent = "Neue Version herunterladen";
   });
 
   // Nach einem Update einmal zeigen, was neu ist
