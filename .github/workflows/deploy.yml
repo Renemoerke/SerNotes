@@ -1,0 +1,38 @@
+name: Auf Webspace hochladen
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "version.json"
+      - "CHANGELOG.md"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dateien holen
+        uses: actions/checkout@v4
+
+      - name: Versionsnummern prüfen
+        run: |
+          APP=$(grep -oP 'const APP_VERSION = "\K[0-9.]+' index.html)
+          JSON=$(python3 -c 'import json;print(json.load(open("version.json"))["version"])')
+          echo "index.html: $APP – version.json: $JSON"
+          if [ "$APP" != "$JSON" ]; then echo "::error::Versionsnummern stimmen nicht überein"; exit 1; fi
+
+      - name: Per FTP hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_DIR }}
+          protocol: ftps
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            README.md
