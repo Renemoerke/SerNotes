@@ -1,7 +1,15 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Farbschema in den Einstellungen umschaltbar: Hell, Dunkel oder wie System",
+        "„Nach Updates suchen“ und die installierte Version sind jetzt in den Einstellungen"
+      ]
+    },
     {
       "version": "1.5.0",
       "date": "2026-11-06",

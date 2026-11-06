@@ -85,6 +85,10 @@ h1 { font: 700 1.6rem/1.15 var(--font-display); margin: 0; letter-spacing: -0.01
 .settings { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
 .settings h2 { margin: 0; }
 .set-row { display: grid; grid-template-columns: 9.5em 1fr; gap: 8px 12px; align-items: center; }
+.set-group { margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font: 600 .95rem var(--font-display); }
+#setHead + .set-group { border-top: 0; padding-top: 0; }
+.set-row > .set-label { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.set-row .seg { justify-self: start; flex-wrap: wrap; }
 .set-row > label { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
 .set-row select, .set-row input[type="range"] { width: 100%; min-width: 0; }
 .set-row select { font: inherit; font-size: .95rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
@@ -152,7 +156,7 @@ textarea {
 }
 .seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 1px; }
 .seg input:checked + label.l1 { background: var(--p1); color: #fff; }
-.seg input:checked + label.l2 { background: var(--accent); color: #fff; }
+.seg input:checked + label.l2 { background: var(--accent); color: var(--surface); }
 .seg input:checked + label.l3 { background: var(--p3); color: var(--surface); }
 
 /* Liste */
@@ -251,6 +255,9 @@ details[open] summary h2::before { transform: rotate(90deg); }
 </style>
 </head>
 <body>
+<script>
+  try { const t = localStorage.getItem("sprachnotizen.theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
 <div class="wrap">
   <header class="band">
     <div class="band-title">
@@ -266,7 +273,19 @@ details[open] summary h2::before { transform: rotate(90deg); }
   </header>
 
   <section class="settings" id="settings" hidden aria-labelledby="setHead">
-    <h2 id="setHead">Alarm-Einstellungen</h2>
+    <h2 id="setHead">Einstellungen</h2>
+
+    <h3 class="set-group">Darstellung</h3>
+    <div class="set-row">
+      <span class="set-label" id="themeLabel">Farbschema</span>
+      <div class="seg" role="radiogroup" aria-labelledby="themeLabel">
+        <input type="radio" name="theme" id="themeLight" value="light"><label for="themeLight" class="l2">Hell</label>
+        <input type="radio" name="theme" id="themeDark" value="dark"><label for="themeDark" class="l2">Dunkel</label>
+        <input type="radio" name="theme" id="themeSystem" value="system" checked><label for="themeSystem" class="l2">Wie System</label>
+      </div>
+    </div>
+
+    <h3 class="set-group">Alarm</h3>
     <div class="set-row">
       <label for="volume">Lautstärke</label>
       <input type="range" id="volume" min="5" max="100" step="5" value="80">
@@ -287,6 +306,17 @@ details[open] summary h2::before { transform: rotate(90deg); }
       <button class="btn-ghost" id="testSound" type="button">Ton testen</button>
     </div>
     <p class="set-note">Der Ton kommt aus dem Standard-Lautsprecher des Systems.</p>
+
+    <h3 class="set-group">Updates</h3>
+    <div class="set-row">
+      <span class="set-label">Installiert</span>
+      <span class="ver" id="setVersion"></span>
+    </div>
+    <div class="set-actions">
+      <button class="btn-ghost" id="checkUpdate" type="button">Nach Updates suchen</button>
+      <button class="clear-date" id="showNews2" type="button">Was ist neu?</button>
+    </div>
+    <p class="set-note" id="updStatus" aria-live="polite"></p>
   </section>
 
   <p class="notice" id="unsupported" hidden>Spracheingabe funktioniert in diesem Browser nicht. Nutze Chrome, Edge oder Safari – oder tippe die Notiz einfach ein.</p>
@@ -348,8 +378,6 @@ details[open] summary h2::before { transform: rotate(90deg); }
   <footer class="appfoot">
     <span class="ver">SerNotes <span id="appVersion"></span></span>
     <button class="clear-date" id="showNews" type="button">Was ist neu?</button>
-    <button class="clear-date" id="checkUpdate" type="button">Nach Updates suchen</button>
-    <span class="upd-status" id="updStatus" aria-live="polite"></span>
   </footer>
 </div>
 
@@ -572,6 +600,24 @@ details[open] summary h2::before { transform: rotate(90deg); }
   }
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener("devicechange", () => loadMics());
   loadMics();
+
+  // ---------- Farbschema ----------
+  const THEME_KEY = "sprachnotizen.theme";
+  function applyTheme(t) {
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() || (dark ? "#0a1d33" : "#0f2b4a");
+  }
+  let theme = "system"; try { theme = localStorage.getItem(THEME_KEY) || "system"; } catch (e) {}
+  ($("theme" + theme.charAt(0).toUpperCase() + theme.slice(1)) || $("themeSystem")).checked = true;
+  applyTheme(theme);
+  document.querySelectorAll('input[name="theme"]').forEach(r => r.addEventListener("change", () => {
+    theme = r.value; try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+    applyTheme(theme);
+  }));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => applyTheme(theme));
 
   // ---------- Einstellungen ----------
   const SET_KEY = "sprachnotizen.settings";
@@ -955,16 +1001,18 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // ---------- Version & Updates ----------
   // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
-  const APP_VERSION = "1.5.0";
+  const APP_VERSION = "1.6.0";
   const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
   const REPO_URL = "https://github.com/Renemoerke/SerNotes";
   const APP_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/index.html";
   const IS_LOCAL = location.protocol === "file:";
   const SEEN_KEY = "sprachnotizen.seenVersion", CHECK_KEY = "sprachnotizen.lastCheck";
   $("appVersion").textContent = "v" + APP_VERSION;
+  $("setVersion").textContent = "v" + APP_VERSION;
 
   // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
   const LOCAL_CHANGELOG = [
+    { version: "1.6.0", date: "2026-11-06", changes: ["Farbschema umschaltbar: Hell, Dunkel oder wie System", "„Nach Updates suchen“ ist jetzt in den Einstellungen"] },
     { version: "1.5.0", date: "2026-11-06", changes: ["Lokal geöffnet: Update als Datei herunterladen", "Webspace: „Jetzt aktualisieren“ prüft erst, ob die neue Version schon auf dem Server liegt"] },
     { version: "1.4.1", date: "2026-11-06", changes: ["Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage"] },
     { version: "1.4.0", date: "2026-11-06", changes: ["Versionsanzeige, „Was ist neu?“ und Update-Prüfung über GitHub"] }
@@ -1031,6 +1079,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
     }
   }
   $("checkUpdate").addEventListener("click", () => checkUpdate(true));
+  $("showNews2").addEventListener("click", () => $("showNews").click());
   $("updateNews").addEventListener("click", () => showNews(remote && remote.changelog));
   function updateMsg(text) { const m = $("updateMsg"); m.textContent = text; m.hidden = false; }
 

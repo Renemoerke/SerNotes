@@ -1,5 +1,9 @@
 # Changelog – SerNotes
 
+## 1.6.0 – 06.11.2026
+- Farbschema in den Einstellungen umschaltbar: Hell, Dunkel oder wie System
+- „Nach Updates suchen“ und die installierte Version sind jetzt in den Einstellungen
+
 ## 1.5.0 – 06.11.2026
 - Wenn du die Datei direkt vom Rechner öffnest, bietet die Update-Leiste die neue Version zum Herunterladen an
 - Auf dem Webspace prüft „Jetzt aktualisieren“ erst, ob die neue Version schon auf dem Server liegt, und sagt sonst, woran es hängt
