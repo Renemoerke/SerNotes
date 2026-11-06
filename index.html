@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sprachnotizen</title>
+<meta name="theme-color" content="#2a3fbf">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: eine schmale Spalte – Kopfband in Hausfarbe, Diktier-Leiste, fällige Aufgaben oben, Erledigtes und Papierkorb eingeklappt darunter */
+/* ===== HAUSFARBEN – hier die Farben von sertronics.de eintragen ===== */
+:root {
+  --brand: #0f2b4a;        /* Kopfband */
+  --brand-fg: #ffffff;     /* Schrift im Kopfband */
+  --accent: #1764d1;       /* Knöpfe, Auswahl, Links */
+  --accent-soft: #e3edfb;
+}
+/* ==================================================================== */
+:root {
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --fg: #142033;
+  --muted: #5a6577;
+  --line: #d9dee6;
+  --rec: #d6343f;
+  --rec-soft: #fde8ea;
+  --late: #c2410c;
+  --late-soft: #fdeee6;
+  --soon: #a16207;
+  --done: #8a8fa6;
+  --p1: #c81e3a;
+  --p1-soft: #fbe3e7;
+  --p3: #6b7190;
+  --p3-soft: #eceef4;
+  --font-display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141d; --surface: #172131; --fg: #e8edf4; --muted: #95a1b3; --line: #273449;
+    --brand: #0a1d33; --accent: #6aa3ff; --accent-soft: #1b2c47; --rec: #ff5c66; --rec-soft: #3d1d22; --late: #ff8a4c; --late-soft: #3a2218;
+    --soon: #e0b04a; --done: #6c7190; --p1: #ff6b80; --p1-soft: #3d1c25; --p3: #9ba0ba; --p3-soft: #262a3b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141d; --surface: #172131; --fg: #e8edf4; --muted: #95a1b3; --line: #273449;
+  --brand: #0a1d33; --accent: #6aa3ff; --accent-soft: #1b2c47; --rec: #ff5c66; --rec-soft: #3d1d22; --late: #ff8a4c; --late-soft: #3a2218;
+  --soon: #e0b04a; --done: #6c7190; --p1: #ff6b80; --p1-soft: #3d1c25; --p3: #9ba0ba; --p3-soft: #262a3b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) max(110px, env(safe-area-inset-bottom, 0px));
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+header.band {
+  background: var(--brand); color: var(--brand-fg); border-radius: 14px; padding: 16px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.band-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.eyebrow { font: 500 .7rem var(--font-mono); text-transform: uppercase; letter-spacing: .14em; opacity: .7; }
+h1 { font: 700 1.6rem/1.15 var(--font-display); margin: 0; letter-spacing: -0.01em; }
+.band-right { display: flex; align-items: center; gap: 10px; }
+.band .count { color: var(--brand-fg); opacity: .85; }
+.count { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.gear {
+  background: color-mix(in srgb, var(--brand-fg) 12%, transparent); color: var(--brand-fg); border: 0; border-radius: 10px;
+  padding: 8px; cursor: pointer; display: grid; place-items: center;
+}
+.gear:hover, .gear[aria-expanded="true"] { background: color-mix(in srgb, var(--brand-fg) 24%, transparent); }
+.gear svg { width: 20px; height: 20px; }
+
+/* Einstellungen */
+.settings { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+.settings h2 { margin: 0; }
+.set-row { display: grid; grid-template-columns: 9.5em 1fr; gap: 8px 12px; align-items: center; }
+.set-row > label { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.set-row select, .set-row input[type="range"] { width: 100%; min-width: 0; }
+.set-row select { font: inherit; font-size: .95rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+.set-row input[type="range"] { accent-color: var(--accent); }
+.set-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.set-note { font-size: .8rem; color: var(--muted); margin: 0; }
+.btn-ghost { background: var(--accent-soft); color: var(--accent); border: 0; border-radius: 999px; padding: 8px 16px; font: 600 .9rem var(--font-body); cursor: pointer; }
+@media (max-width: 480px) { .set-row { grid-template-columns: 1fr; } }
+
+/* Papierkorb */
+.trash-item { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 14px; border: 1px dashed var(--line); border-radius: 12px; }
+.trash-item .text { color: var(--muted); }
+.trash-meta { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.trash-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.trash-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.trash-head p { margin: 0; font-size: .8rem; color: var(--muted); }
+
+/* Eingabe */
+.composer {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.composer.listening { border-color: var(--rec); box-shadow: 0 0 0 3px color-mix(in srgb, var(--rec) 18%, transparent); }
+.row { display: flex; gap: 12px; align-items: flex-start; }
+.mic {
+  flex: none; width: 64px; height: 64px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--accent); color: #fff; display: grid; place-items: center;
+  transition: transform .15s, background .15s;
+}
+.mic:hover { transform: scale(1.04); }
+.mic:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mic svg { width: 28px; height: 28px; }
+.listening .mic { background: var(--rec); animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--rec) 15%, transparent); } }
+.mic[disabled] { background: var(--done); cursor: not-allowed; animation: none; }
+textarea {
+  flex: 1; min-width: 0; min-height: 64px; resize: vertical; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font: inherit; color: var(--fg); background: var(--bg);
+}
+.status { font-size: .875rem; color: var(--muted); min-height: 1.3em; margin: 0; }
+.listening .status { color: var(--rec); font-weight: 700; }
+.meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.meta label, .field-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.meta select { flex: 1; min-width: 0; max-width: 100%; }
+.meta input, .meta select {
+  font: inherit; font-size: .95rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--fg);
+}
+.meta input[type="number"] { width: 5.5em; font-variant-numeric: tabular-nums; }
+.unit { font-size: .9rem; color: var(--muted); }
+.clear-date { background: none; border: 0; color: var(--muted); cursor: pointer; font: inherit; font-size: .875rem; text-decoration: underline; padding: 4px; }
+.add {
+  margin-left: auto; background: var(--fg); color: var(--bg); border: 0; border-radius: 999px;
+  padding: 10px 20px; font: 700 .95rem var(--font-body); cursor: pointer;
+}
+.add[disabled] { opacity: .4; cursor: default; }
+.divider { width: 1px; align-self: stretch; background: var(--line); }
+
+/* Priorität (Segment-Schalter) */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--bg); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label {
+  text-transform: none; letter-spacing: 0; font-size: .875rem; font-weight: 700; color: var(--muted);
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+}
+.seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 1px; }
+.seg input:checked + label.l1 { background: var(--p1); color: #fff; }
+.seg input:checked + label.l2 { background: var(--accent); color: #fff; }
+.seg input:checked + label.l3 { background: var(--p3); color: var(--surface); }
+
+/* Liste */
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.item {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+}
+.item.late { border-color: color-mix(in srgb, var(--late) 45%, var(--line)); background: var(--late-soft); }
+.item.ringing { border-color: var(--rec); background: var(--rec-soft); box-shadow: 0 0 0 2px color-mix(in srgb, var(--rec) 30%, transparent); }
+.check {
+  appearance: none; width: 24px; height: 24px; margin: 1px 0 0; border: 2px solid var(--muted); border-radius: 7px;
+  cursor: pointer; display: grid; place-items: center; background: var(--surface);
+}
+.check:checked { background: var(--accent); border-color: var(--accent); }
+.check:checked::after { content: ""; width: 6px; height: 12px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+.body { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.text { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; outline: none; border-radius: 4px; }
+.text[contenteditable="true"] { box-shadow: 0 0 0 2px var(--accent); padding: 2px 4px; }
+.when { font-size: .8rem; color: var(--muted); display: flex; gap: 6px 8px; flex-wrap: wrap; align-items: center; font-variant-numeric: tabular-nums; }
+.pill { font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.late { background: var(--late); color: #fff; }
+.pill.soon { background: color-mix(in srgb, var(--soon) 18%, transparent); color: var(--soon); }
+.pill.alarm { background: var(--rec); color: #fff; }
+.pill.timer { background: var(--fg); color: var(--bg); display: inline-flex; gap: 4px; align-items: center; font-family: var(--font-mono); font-weight: 500; }
+.mini.danger { color: var(--rec); }
+.prio {
+  border: 0; cursor: pointer; font: 700 .75rem var(--font-body); padding: 2px 9px; border-radius: 999px; letter-spacing: .02em;
+}
+.prio.p1 { background: var(--p1-soft); color: var(--p1); }
+.prio.p2 { background: var(--accent-soft); color: var(--accent); }
+.prio.p3 { background: var(--p3-soft); color: var(--p3); }
+.mini { border: 1px solid currentColor; background: none; color: inherit; font: 700 .75rem var(--font-body); border-radius: 999px; padding: 1px 8px; cursor: pointer; }
+.timer-panel { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 2px; }
+.chip { border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: 700 .85rem var(--font-body); border-radius: 999px; padding: 4px 11px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.timer-panel input { width: 5em; font: inherit; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+.done .text { text-decoration: line-through; color: var(--done); }
+.done { background: transparent; }
+.actions { display: flex; gap: 2px; }
+.icon-btn { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center; }
+.icon-btn:hover, .icon-btn[aria-expanded="true"] { background: var(--accent-soft); color: var(--fg); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.confirm { color: var(--rec); font: 700 .8rem var(--font-body); padding: 6px 8px; }
+
+h2 { font: 600 1.05rem var(--font-display); margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+details summary { cursor: pointer; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details summary h2::before { content: "▸"; color: var(--muted); transition: transform .15s; display: inline-block; }
+details[open] summary h2::before { transform: rotate(90deg); }
+.empty { color: var(--muted); padding: 18px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; margin: 0; }
+.notice { font-size: .875rem; background: var(--accent-soft); color: var(--fg); padding: 10px 14px; border-radius: 10px; margin: 0; }
+/* Version & Updates */
+.appfoot { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; padding-top: 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+.ver { font-family: var(--font-mono); font-weight: 500; }
+.upd-status { flex-basis: 100%; }
+.update-bar {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 15;
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--brand); color: var(--brand-fg); box-shadow: 0 2px 12px rgb(0 0 0 / .2);
+}
+.update-in { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.update-in p { margin: 0; flex: 1 1 14em; min-width: 0; font-weight: 600; }
+.update-in .add { margin-left: 0; background: var(--brand-fg); color: var(--brand); }
+.modal-back {
+  position: fixed; inset: 0; z-index: 30; background: rgb(8 14 24 / .55); display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.modal { background: var(--surface); color: var(--fg); border-radius: 14px; width: min(560px, 100%); max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.modal-head h2 { margin: 0; }
+.modal-body { overflow-y: auto; padding: 8px 16px 16px; }
+.rel { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.rel:last-child { border-bottom: 0; }
+.rel h3 { margin: 0 0 6px; font: 600 1rem var(--font-display); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.rel h3 .date { font: 500 .8rem var(--font-mono); color: var(--muted); }
+.rel h3 .now { font: 600 .7rem var(--font-body); text-transform: uppercase; letter-spacing: .06em; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 1px 8px; }
+.rel ul { margin: 0; padding-left: 1.2em; display: grid; gap: 3px; }
+.hint { font-size: .8rem; color: var(--muted); margin: 0; display: flex; gap: 6px 12px; flex-wrap: wrap; align-items: center; }
+
+/* Alarm-Leiste */
+.toast {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: var(--rec); color: #fff;
+}
+.toast-in { max-width: 640px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+.toast p { margin: 0; flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.toast button { flex: none; background: #fff; color: var(--rec); border: 0; border-radius: 999px; padding: 9px 18px; font: 700 .95rem var(--font-body); cursor: pointer; }
+.toast svg { width: 24px; height: 24px; flex: none; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 420px) { .mic { width: 56px; height: 56px; } .add { margin-left: 0; width: 100%; } .divider { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="band">
+    <div class="band-title">
+      <span class="eyebrow">Sertronics · Aufgaben</span>
+      <h1>Sprachnotizen</h1>
+    </div>
+    <div class="band-right">
+      <span class="count" id="count"></span>
+      <button class="gear" id="gear" type="button" aria-label="Einstellungen" aria-expanded="false" aria-controls="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="settings" id="settings" hidden aria-labelledby="setHead">
+    <h2 id="setHead">Alarm-Einstellungen</h2>
+    <div class="set-row">
+      <label for="volume">Lautstärke</label>
+      <input type="range" id="volume" min="5" max="100" step="5" value="80">
+    </div>
+    <div class="set-row">
+      <label for="duration">Alarm klingelt</label>
+      <select id="duration">
+        <option value="5">5 Sekunden</option>
+        <option value="10">10 Sekunden</option>
+        <option value="30" selected>30 Sekunden</option>
+        <option value="60">1 Minute</option>
+        <option value="120">2 Minuten</option>
+        <option value="300">5 Minuten</option>
+        <option value="0">bis ich ihn ausschalte</option>
+      </select>
+    </div>
+    <div class="set-actions">
+      <button class="btn-ghost" id="testSound" type="button">Ton testen</button>
+    </div>
+    <p class="set-note">Der Ton kommt aus dem Standard-Lautsprecher des Systems.</p>
+  </section>
+
+  <p class="notice" id="unsupported" hidden>Spracheingabe funktioniert in diesem Browser nicht. Nutze Chrome, Edge oder Safari – oder tippe die Notiz einfach ein.</p>
+
+  <section class="composer" id="composer" aria-label="Neue Notiz">
+    <div class="row">
+      <button class="mic" id="mic" type="button" aria-label="Aufnahme starten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>
+      </button>
+      <textarea id="input" placeholder="Mikrofon antippen und sprechen – oder hier tippen …" aria-label="Notiztext"></textarea>
+    </div>
+    <div class="meta" id="micRow" hidden>
+      <label for="micSelect">Mikrofon</label>
+      <select id="micSelect"></select>
+      <button class="clear-date" id="findMics" type="button" hidden>Mikrofone suchen</button>
+    </div>
+    <p class="status" id="status" aria-live="polite">Tipp: „Wichtig: Zahnarzt anrufen bis Freitag“ oder „Nudeln abgießen in 10 Minuten“.</p>
+    <div class="meta">
+      <span class="field-label" id="prioLabel">Priorität</span>
+      <div class="seg" role="radiogroup" aria-labelledby="prioLabel">
+        <input type="radio" name="prio" id="prio1" value="1"><label for="prio1" class="l1">Hoch</label>
+        <input type="radio" name="prio" id="prio2" value="2" checked><label for="prio2" class="l2">Mittel</label>
+        <input type="radio" name="prio" id="prio3" value="3"><label for="prio3" class="l3">Niedrig</label>
+      </div>
+      <span class="divider" aria-hidden="true"></span>
+      <label for="timerMin">Timer</label>
+      <input type="number" id="timerMin" min="1" max="1440" step="1" inputmode="numeric" placeholder="–">
+      <span class="unit">Min.</span>
+    </div>
+    <div class="meta">
+      <label for="due">Frist</label>
+      <input type="date" id="due">
+      <input type="time" id="dueTime" aria-label="Uhrzeit (optional)">
+      <button class="clear-date" id="clearDue" type="button" hidden>entfernen</button>
+      <button class="add" id="add" type="button" disabled>Notiz speichern</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="openHead">
+    <h2 id="openHead">Offen</h2>
+    <ul class="list" id="openList"></ul>
+  </section>
+
+  <details id="doneBox">
+    <summary><h2>Erledigt <span class="count" id="doneCount"></span></h2></summary>
+    <ul class="list" id="doneList"></ul>
+  </details>
+
+  <details id="trashBox">
+    <summary><h2>Papierkorb <span class="count" id="trashCount"></span></h2></summary>
+    <div class="trash-head">
+      <p>Gelöschte Aufgaben bleiben 3 Tage hier, danach werden sie endgültig entfernt.</p>
+      <button class="mini danger" id="emptyTrash" type="button">Papierkorb leeren</button>
+    </div>
+    <ul class="list" id="trashList"></ul>
+  </details>
+
+  <p class="hint">Die Notizen werden nur in diesem Browser auf diesem Gerät gespeichert. Der Alarm klingelt nur, solange die Seite geöffnet ist.</p>
+
+  <footer class="appfoot">
+    <span class="ver">SerNotes <span id="appVersion"></span></span>
+    <button class="clear-date" id="showNews" type="button">Was ist neu?</button>
+    <button class="clear-date" id="checkUpdate" type="button">Nach Updates suchen</button>
+    <span class="upd-status" id="updStatus" aria-live="polite"></span>
+  </footer>
+</div>
+
+<div class="update-bar" id="updateBar" role="status" hidden>
+  <div class="update-in">
+    <p id="updateText"></p>
+    <button type="button" class="btn-ghost" id="updateNews">Änderungen</button>
+    <button type="button" class="add" id="updateReload">Jetzt aktualisieren</button>
+  </div>
+</div>
+
+<div class="modal-back" id="newsModal" hidden>
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="newsHead">
+    <div class="modal-head">
+      <h2 id="newsHead">Was ist neu?</h2>
+      <button class="icon-btn" id="newsClose" type="button" aria-label="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="newsBody"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="alert" hidden>
+  <div class="toast-in">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></svg>
+    <p id="toastText"></p>
+    <button type="button" id="toastOk">Ton aus</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const KEY = "sprachnotizen.v1";
+  const $ = id => document.getElementById(id);
+  const input = $("input"), due = $("due"), dueTime = $("dueTime"), addBtn = $("add"), timerMin = $("timerMin");
+  const statusEl = $("status"), composer = $("composer"), mic = $("mic");
+  const PRIO_NAME = { 1: "Hoch", 2: "Mittel", 3: "Niedrig" };
+
+  // ---------- Speicher ----------
+  let notes = [];
+  try { notes = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { notes = []; }
+  notes.forEach(n => { if (![1, 2, 3].includes(n.prio)) n.prio = 2; });
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {} };
+
+  let seeded = false;
+  try { seeded = !!localStorage.getItem(KEY + ".seeded"); } catch (e) {}
+  if (!notes.length && !seeded) {
+    const d = n => { const x = new Date(); x.setDate(x.getDate() + n); return iso(x); };
+    const now = Date.now();
+    notes = [
+      { id: uid(), text: "Beispiel: Reifenwechsel-Termin vereinbaren", prio: 1, due: d(-1), time: "", done: false, created: now - 86400000, deadlineAlerted: true },
+      { id: uid(), text: "Beispiel: Pizza aus dem Ofen holen", prio: 2, due: "", time: "", timerEnd: now + 12 * 60000, timerMin: 12, done: false, created: now - 60000 },
+      { id: uid(), text: "Beispiel: Geschenk für Mama besorgen", prio: 2, due: d(3), time: "", done: false, created: now - 3600000 },
+      { id: uid(), text: "Beispiel: Fotos sortieren", prio: 3, due: "", time: "", done: false, created: now },
+      { id: uid(), text: "Beispiel: Backup vom Server prüfen", prio: 2, due: "", time: "", done: true, created: now - 7200000 }
+    ];
+    try { localStorage.setItem(KEY + ".seeded", "1"); } catch (e) {}
+    save();
+  }
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+
+  // Zeitpunkt, an dem die Frist abläuft: mit Uhrzeit genau dann, sonst am Ende des Tages.
+  function deadlineTs(n) {
+    if (!n.due) return null;
+    const [y, mo, d] = n.due.split("-").map(Number);
+    if (n.time) { const [h, m] = n.time.split(":").map(Number); return new Date(y, mo - 1, d, h, m).getTime(); }
+    return new Date(y, mo - 1, d + 1).getTime();
+  }
+  const isOverdue = n => { const t = deadlineTs(n); return t !== null && Date.now() >= t; };
+
+  // ---------- Sprache auswerten: Frist, Timer, Priorität ----------
+  const WD = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6, sonnabend: 6 };
+  const MON = { januar: 1, jänner: 1, februar: 2, märz: 3, maerz: 3, april: 4, mai: 5, juni: 6, juli: 7, august: 8, september: 9, oktober: 10, november: 11, dezember: 12 };
+  const NUMW = { ein: 1, eine: 1, einer: 1, einen: 1, zwei: 2, drei: 3, vier: 4, fünf: 5, sechs: 6, sieben: 7, acht: 8, neun: 9, zehn: 10, elf: 11, zwölf: 12, fünfzehn: 15, zwanzig: 20, dreißig: 30, vierzig: 40, fünfundvierzig: 45, sechzig: 60, neunzig: 90 };
+  function parseText(text) {
+    const t = " " + text.toLowerCase() + " ";
+    const today = startOfDay(new Date());
+    let date = null, m;
+    if (/\bübermorgen\b/.test(t)) { date = new Date(today); date.setDate(date.getDate() + 2); }
+    else if (/\bmorgen\b/.test(t)) { date = new Date(today); date.setDate(date.getDate() + 1); }
+    else if (/\bheute\b/.test(t)) { date = new Date(today); }
+    else if (/\b(nächste[nr]?|kommende[nr]?)\s+woche\b/.test(t)) { date = new Date(today); date.setDate(date.getDate() + ((8 - date.getDay()) % 7 || 7)); }
+    else if ((m = t.match(/\b(\d{1,2})\.\s?(\d{1,2})\.?(?:\s?(\d{2,4}))?/))) {
+      let y = m[3] ? +m[3] : today.getFullYear(); if (y < 100) y += 2000;
+      date = new Date(y, +m[2] - 1, +m[1]);
+      if (!m[3] && date < today) date.setFullYear(y + 1);
+    }
+    else if ((m = t.match(new RegExp("\\b(\\d{1,2})\\.?\\s*(" + Object.keys(MON).join("|") + ")\\b")))) {
+      date = new Date(today.getFullYear(), MON[m[2]] - 1, +m[1]);
+      if (date < today) date.setFullYear(date.getFullYear() + 1);
+    }
+    else if ((m = t.match(new RegExp("\\b(" + Object.keys(WD).join("|") + ")\\b")))) {
+      date = new Date(today);
+      date.setDate(date.getDate() + ((WD[m[1]] - date.getDay() + 7) % 7 || 7));
+    }
+    let time = "";
+    if ((m = t.match(/\bum\s+(\d{1,2})(?::|\.|\s?uhr\s?)(\d{2})?/))) {
+      const h = +m[1], min = m[2] ? +m[2] : 0;
+      if (h < 24 && min < 60) time = String(h).padStart(2, "0") + ":" + String(min).padStart(2, "0");
+    }
+    // Timer: „in 10 Minuten“, „Timer 5 Minuten“, „in einer halben Stunde“, „nach zwei Stunden“
+    let timer = 0;
+    if (/\b(in|nach)\s+(einer\s+)?halbe[nr]?\s+stunde\b/.test(t)) timer = 30;
+    else if (/\b(in|nach)\s+(einer\s+)?viertelstunde\b/.test(t)) timer = 15;
+    else if ((m = t.match(new RegExp("\\b(?:in|nach|timer(?:\\s+auf|\\s+für)?|für)\\s+(\\d{1,4}|" + Object.keys(NUMW).join("|") + ")\\s*(min(?:\\.|uten?)?|stunden?|std\\.?)\\b")))) {
+      const num = /\d/.test(m[1]) ? +m[1] : NUMW[m[1]];
+      timer = /^st/.test(m[2]) ? num * 60 : num;
+    }
+    let prio = 0;
+    if (/\b(sehr wichtig|wichtig|dringend|priorität hoch|hohe priorität|asap|sofort)\b/.test(t) && !/\bunwichtig\b/.test(t)) prio = 1;
+    else if (/\b(unwichtig|priorität niedrig|niedrige priorität|irgendwann|nicht so wichtig)\b/.test(t)) prio = 3;
+    return { date: date && !isNaN(date) ? iso(date) : "", time, timer, prio };
+  }
+
+  function setPrio(p) { const r = $("prio" + p); if (r) r.checked = true; }
+  function getPrio() { const r = document.querySelector('input[name="prio"]:checked'); return r ? +r.value : 2; }
+
+  function applyParsed(text) {
+    const p = parseText(text);
+    if (p.date && !due.dataset.manual) due.value = p.date;
+    if (p.time && !dueTime.dataset.manual) dueTime.value = p.time;
+    if (p.timer && !timerMin.dataset.manual) timerMin.value = p.timer;
+    if (p.prio && !composer.dataset.prioManual) setPrio(p.prio);
+    syncButtons();
+  }
+
+  // ---------- Spracherkennung ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, listening = false, baseText = "";
+  if (!SR) {
+    $("unsupported").hidden = false;
+    mic.disabled = true; mic.setAttribute("aria-label", "Spracheingabe nicht verfügbar");
+  } else {
+    rec = new SR();
+    rec.lang = "de-DE";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onstart = () => { listening = true; if (!findBtn.hidden) loadMics(false); composer.classList.add("listening"); mic.setAttribute("aria-label", "Aufnahme stoppen"); statusEl.textContent = "Ich höre zu … Zum Beenden nochmal tippen."; };
+    rec.onresult = e => {
+      let finalTxt = "", interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalTxt += r[0].transcript; else interim += r[0].transcript;
+      }
+      if (finalTxt) baseText = (baseText + " " + finalTxt).trim();
+      input.value = (baseText + " " + interim).trim();
+      if (input.value) input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
+      applyParsed(input.value);
+    };
+    rec.onerror = e => {
+      const msg = {
+        "not-allowed": "Mikrofon ist blockiert. Erlaube den Zugriff in den Browser-Einstellungen (Schloss-Symbol in der Adressleiste).",
+        "service-not-allowed": "Mikrofon ist blockiert. Die Seite muss über https:// geöffnet werden.",
+        "no-speech": "Nichts gehört. Tippe aufs Mikrofon und sprich etwas lauter.",
+        "audio-capture": "Kein Mikrofon gefunden. Prüfe, ob eins angeschlossen ist.",
+        "network": "Spracherkennung braucht eine Internetverbindung."
+      }[e.error] || "Spracherkennung fehlgeschlagen (" + e.error + ").";
+      statusEl.textContent = msg;
+    };
+    rec.onend = () => {
+      stopStream();
+      listening = false; composer.classList.remove("listening"); mic.setAttribute("aria-label", "Aufnahme starten");
+      if (!/blockiert|Nichts gehört|Kein Mikrofon|Internet|fehlgeschlagen/.test(statusEl.textContent))
+        statusEl.textContent = input.value.trim() ? "Fertig. Prüfe den Text und tippe auf „Notiz speichern“." : "Tipp: „Wichtig: Zahnarzt anrufen bis Freitag“ oder „Nudeln abgießen in 10 Minuten“.";
+      syncButtons();
+    };
+    mic.addEventListener("click", async () => {
+      if (listening) { rec.stop(); return; }
+      baseText = input.value.trim();
+      const deviceId = micSelect.value;
+      if (deviceId && deviceId !== "default" && navigator.mediaDevices) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
+          const track = stream.getAudioTracks()[0];
+          try { rec.start(track); return; }
+          catch (err) {
+            stopStream();
+            statusEl.textContent = "Dieser Browser kann kein bestimmtes Mikrofon nutzen – nehme das Standard-Mikrofon.";
+          }
+        } catch (err) {
+          stopStream();
+          statusEl.textContent = "Das gewählte Mikrofon ließ sich nicht öffnen – nehme das Standard-Mikrofon.";
+        }
+      }
+      try { rec.start(); } catch (err) { statusEl.textContent = "Aufnahme läuft schon."; }
+    });
+  }
+
+  // ---------- Mikrofon-Auswahl ----------
+  const MIC_KEY = "sprachnotizen.mic";
+  const PREFERRED = /usb 2\.0 camera/i;
+  const micSelect = $("micSelect");
+  const findBtn = $("findMics");
+  let stream = null;
+  function stopStream() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+
+  async function loadMics(askPermission) {
+    if (!SR) return;
+    $("micRow").hidden = false;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      micSelect.replaceChildren(new Option("Standard-Mikrofon des Systems", "default"));
+      micSelect.disabled = true;
+      statusEl.textContent = location.protocol === "https:"
+        ? "Dieser Browser erlaubt keine Mikrofon-Auswahl."
+        : "Mikrofon-Auswahl geht nur, wenn die Seite über https:// geöffnet ist (aktuell: " + location.protocol + "//).";
+      return;
+    }
+    try {
+      if (askPermission) {
+        statusEl.textContent = "Bitte den Mikrofonzugriff im Browser erlauben …";
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        s.getTracks().forEach(t => t.stop());
+      }
+      const mics = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+      const hasLabels = mics.some(d => d.label);
+      if (!hasLabels && !askPermission && navigator.permissions) {
+        try {
+          const p = await navigator.permissions.query({ name: "microphone" });
+          if (p.state === "granted") return loadMics(true);
+        } catch (e) {}
+      }
+      let saved = ""; try { saved = localStorage.getItem(MIC_KEY) || ""; } catch (e) {}
+      micSelect.replaceChildren(new Option("Standard-Mikrofon des Systems", "default"));
+      micSelect.disabled = false;
+      const real = mics.filter(d => d.label && d.deviceId && d.deviceId !== "default" && d.deviceId !== "communications");
+      real.forEach(d => micSelect.append(new Option(d.label, d.deviceId)));
+      findBtn.hidden = hasLabels;
+      if (hasLabels) {
+        const preferred = real.find(d => PREFERRED.test(d.label));
+        if (saved && real.some(d => d.deviceId === saved)) micSelect.value = saved;
+        else if (preferred) micSelect.value = preferred.deviceId;
+        if (askPermission) statusEl.textContent = real.length + (real.length === 1 ? " Mikrofon" : " Mikrofone") + " gefunden.";
+      } else if (askPermission) {
+        statusEl.textContent = "Der Browser hat keine Mikrofone gemeldet. Prüfe, ob die Kamera eingesteckt ist.";
+      }
+    } catch (e) {
+      findBtn.hidden = false;
+      statusEl.textContent = {
+        NotAllowedError: "Mikrofonzugriff wurde abgelehnt. Erlaube ihn über das Schloss-Symbol in der Adressleiste und tippe dann nochmal auf „Mikrofone suchen“.",
+        NotFoundError: "Kein Mikrofon gefunden. Prüfe, ob die Kamera eingesteckt ist.",
+        NotReadableError: "Das Mikrofon wird gerade von einem anderen Programm benutzt (z. B. Teams oder Zoom)."
+      }[e.name] || "Mikrofone konnten nicht gelesen werden (" + e.name + ").";
+    }
+  }
+  micSelect.addEventListener("change", () => { try { localStorage.setItem(MIC_KEY, micSelect.value); } catch (e) {} });
+  findBtn.addEventListener("click", () => loadMics(true));
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener("devicechange", () => loadMics(false));
+  loadMics(false);
+
+  // ---------- Einstellungen ----------
+  const SET_KEY = "sprachnotizen.settings";
+  let settings = { volume: 80, duration: 30 };
+  try { Object.assign(settings, JSON.parse(localStorage.getItem(SET_KEY)) || {}); } catch (e) {}
+  const saveSettings = () => { try { localStorage.setItem(SET_KEY, JSON.stringify(settings)); } catch (e) {} };
+  const volume = $("volume"), duration = $("duration");
+  volume.value = settings.volume;
+  duration.value = String(settings.duration);
+  if (!duration.value) duration.value = "30";
+
+  $("gear").addEventListener("click", () => {
+    const s = $("settings"); s.hidden = !s.hidden;
+    $("gear").setAttribute("aria-expanded", String(!s.hidden));
+  });
+  volume.addEventListener("input", () => { settings.volume = +volume.value; alarmAudio.volume = settings.volume / 100; saveSettings(); });
+  duration.addEventListener("change", () => { settings.duration = +duration.value; saveSettings(); });
+
+  // ---------- Ton ----------
+  function makeBeepWav() {
+    const rate = 22050, len = Math.round(rate * 0.7), data = new Int16Array(len);
+    [[0, 880], [0.22, 880], [0.44, 1175]].forEach(([start, f]) => {
+      const s0 = Math.round(start * rate), n = Math.round(0.18 * rate);
+      for (let i = 0; i < n && s0 + i < len; i++) {
+        const env = Math.min(1, i / (0.01 * rate), (n - i) / (0.04 * rate));
+        data[s0 + i] = Math.round(Math.sin(2 * Math.PI * f * i / rate) * env * 0.9 * 32767);
+      }
+    });
+    const buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); v.setUint32(4, 36 + len * 2, true); str(8, "WAVE"); str(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, "data"); v.setUint32(40, len * 2, true);
+    new Int16Array(buf, 44).set(data);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+  const alarmAudio = new Audio(makeBeepWav());
+  alarmAudio.volume = settings.volume / 100;
+
+  function unlock() { /* Nach dem ersten Klick auf der Seite darf der Browser Töne abspielen. */ }
+  function beep() {
+    try { alarmAudio.currentTime = 0; } catch (e) {}
+    const p = alarmAudio.play();
+    if (p && p.catch) p.catch(() => {
+      const el = $("toastText");
+      if (!el.textContent.includes("Ton blockiert")) el.textContent += " (Ton blockiert – einmal auf die Seite klicken)";
+    });
+  }
+
+
+  const BASE_TITLE = document.title;
+  let ringTimer = null, ringUntil = 0;
+  function ring(text) {
+    $("toastText").textContent = text;
+    $("toast").hidden = false;
+    ringUntil = settings.duration > 0 ? Date.now() + settings.duration * 1000 : Infinity;
+    if (document.hidden) document.title = "⏰ Fällig! – " + BASE_TITLE;
+    if (ringTimer) return;
+    beep();
+    ringTimer = setInterval(() => { if (Date.now() > ringUntil) { stopRing(false); return; } beep(); }, 2500);
+  }
+  function stopRing(hide) {
+    clearInterval(ringTimer); ringTimer = null;
+    if (hide) $("toast").hidden = true;
+    else $("toastOk").textContent = "OK";
+  }
+  $("toastOk").addEventListener("click", () => { stopRing(true); $("toastOk").textContent = "Ton aus"; document.title = BASE_TITLE; });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) document.title = BASE_TITLE; });
+  $("testSound").addEventListener("click", () => { unlock(); beep(); });
+
+  // ---------- Alarme prüfen ----------
+  function checkAlarms() {
+    const now = Date.now(), fired = [];
+    notes.forEach(n => {
+      if (n.done || n.deletedAt) return;
+      if (n.timerEnd && now >= n.timerEnd) {
+        n.timerEnd = null;
+        n.alarm = { kind: "timer", at: now };
+        fired.push({ n, kind: "timer" });
+      }
+      const dl = deadlineTs(n);
+      if (dl !== null && !n.deadlineAlerted && now >= dl) {
+        n.deadlineAlerted = true;
+        if (!n.alarm) n.alarm = { kind: "deadline", at: now };
+        fired.push({ n, kind: "deadline" });
+      }
+    });
+    if (!fired.length) return;
+    save(); render(true);
+    const first = fired[0];
+    const what = first.kind === "timer" ? "Timer abgelaufen" : "Frist abgelaufen";
+    ring(fired.length === 1 ? what + ": " + first.n.text : fired.length + " Aufgaben fällig, u. a. „" + first.n.text + "“");
+  }
+
+  // ---------- Eingabe ----------
+  function syncButtons() {
+    addBtn.disabled = !input.value.trim();
+    $("clearDue").hidden = !due.value && !dueTime.value;
+  }
+  input.addEventListener("input", () => { applyParsed(input.value); syncButtons(); });
+  input.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) addNote(); });
+  due.addEventListener("input", () => { due.dataset.manual = "1"; syncButtons(); });
+  dueTime.addEventListener("input", () => { dueTime.dataset.manual = "1"; syncButtons(); });
+  timerMin.addEventListener("input", () => { timerMin.dataset.manual = "1"; });
+  document.querySelectorAll('input[name="prio"]').forEach(r => r.addEventListener("change", () => { composer.dataset.prioManual = "1"; }));
+  $("clearDue").addEventListener("click", () => { due.value = ""; dueTime.value = ""; due.dataset.manual = "1"; dueTime.dataset.manual = "1"; syncButtons(); });
+  addBtn.addEventListener("click", addNote);
+
+  function addNote() {
+    const text = input.value.trim();
+    if (!text) return;
+    if (listening) rec.stop();
+    const mins = Math.round(+timerMin.value);
+    const n = { id: uid(), text, prio: getPrio(), due: due.value, time: due.value ? dueTime.value : "", done: false, created: Date.now() };
+    if (mins > 0) { n.timerMin = mins; n.timerEnd = Date.now() + mins * 60000; }
+    if (isOverdue(n)) n.deadlineAlerted = true; // schon vorbei beim Anlegen: nicht klingeln
+    notes.unshift(n);
+    save();
+    input.value = ""; due.value = ""; dueTime.value = ""; timerMin.value = ""; baseText = "";
+    delete due.dataset.manual; delete dueTime.dataset.manual; delete timerMin.dataset.manual; delete composer.dataset.prioManual;
+    setPrio(2);
+    statusEl.textContent = mins > 0 ? "Gespeichert. Timer läuft: " + mins + " Min." : "Gespeichert.";
+    syncButtons(); render(true);
+  }
+
+  // ---------- Darstellung ----------
+  const fmt = new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+  function dueInfo(n) {
+    if (!n.due) return null;
+    const [y, mo, d] = n.due.split("-").map(Number);
+    const date = new Date(y, mo - 1, d);
+    const diff = Math.round((date - startOfDay(new Date())) / 86400000);
+    let label, cls = "";
+    if (diff < 0) { label = diff === -1 ? "seit gestern fällig" : "seit " + (-diff) + " Tagen fällig"; cls = "late"; }
+    else if (diff === 0) { label = "heute"; cls = "soon"; }
+    else if (diff === 1) { label = "morgen"; cls = "soon"; }
+    else label = "in " + diff + " Tagen";
+    if (n.time && diff === 0 && isOverdue(n)) { label = "heute, überfällig"; cls = "late"; }
+    return { label, cls, text: fmt.format(date) + (n.time ? ", " + n.time + " Uhr" : ""), sort: deadlineTs(n) };
+  }
+  function fmtLeft(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(sec).padStart(2, "0");
+  }
+
+  const svg = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  const ICON_EDIT = svg('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
+  const ICON_DEL = svg('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>');
+  const ICON_TIMER = svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>');
+
+  let openPanel = null;   // id der Aufgabe, deren Timer-Auswahl offen ist
+  let editingId = null, pendingRender = false;
+
+  function startTimer(n, mins) {
+    mins = Math.round(+mins);
+    if (!(mins > 0)) return;
+    n.timerMin = mins; n.timerEnd = Date.now() + mins * 60000;
+    if (n.alarm && n.alarm.kind === "timer") n.alarm = null;
+    openPanel = null; unlock(); save(); render(true);
+  }
+
+  function itemEl(n) {
+    const li = document.createElement("li");
+    const info = dueInfo(n);
+    const late = !n.done && isOverdue(n);
+    li.className = "item" + (n.done ? " done" : "") + (!n.done && n.alarm ? " ringing" : late ? " late" : "");
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.className = "check"; cb.checked = n.done; cb.id = "c-" + n.id;
+    cb.setAttribute("aria-label", n.done ? "Wieder öffnen" : "Abhaken");
+    cb.addEventListener("change", () => {
+      n.done = cb.checked; n.doneAt = n.done ? Date.now() : null;
+      if (n.done) { n.alarm = null; n.timerEnd = null; }
+      save(); render(true);
+    });
+
+    const body = document.createElement("div"); body.className = "body";
+    const p = document.createElement("p"); p.className = "text"; p.textContent = n.text;
+    body.append(p);
+
+    const w = document.createElement("div"); w.className = "when";
+    const pr = document.createElement("button");
+    pr.type = "button"; pr.className = "prio p" + n.prio; pr.textContent = PRIO_NAME[n.prio];
+    pr.setAttribute("aria-label", "Priorität " + PRIO_NAME[n.prio] + ", tippen zum Ändern");
+    pr.addEventListener("click", () => { n.prio = n.prio === 1 ? 2 : n.prio === 2 ? 3 : 1; save(); render(true); });
+    w.append(pr);
+
+    if (!n.done && n.alarm) {
+      const a = document.createElement("span"); a.className = "pill alarm";
+      a.textContent = n.alarm.kind === "timer" ? "Timer abgelaufen" : "Frist abgelaufen";
+      w.append(a);
+      const ok = document.createElement("button"); ok.type = "button"; ok.className = "mini"; ok.textContent = "OK";
+      ok.setAttribute("aria-label", "Alarm quittieren");
+      ok.addEventListener("click", () => { n.alarm = null; save(); render(true); });
+      w.append(ok);
+    }
+    if (!n.done && n.timerEnd) {
+      const t = document.createElement("span"); t.className = "pill timer";
+      t.innerHTML = '<span aria-hidden="true">⏱</span>';
+      const left = document.createElement("span"); left.dataset.timer = n.id; left.textContent = fmtLeft(n.timerEnd - Date.now());
+      t.append(left); w.append(t);
+      const stop = document.createElement("button"); stop.type = "button"; stop.className = "mini"; stop.textContent = "Stopp";
+      stop.setAttribute("aria-label", "Timer abbrechen");
+      stop.addEventListener("click", () => { n.timerEnd = null; save(); render(true); });
+      w.append(stop);
+    }
+    if (info) {
+      const pill = document.createElement("span");
+      pill.className = "pill " + (n.done ? "" : (n.alarm && n.alarm.kind === "deadline") ? "late" : info.cls);
+      pill.textContent = n.done ? "Frist" : info.label;
+      const dt = document.createElement("span"); dt.textContent = info.text;
+      w.append(pill, dt);
+    }
+    body.append(w);
+
+    if (!n.done && openPanel === n.id) {
+      const tp = document.createElement("div"); tp.className = "timer-panel";
+      [5, 10, 15, 30, 60].forEach(m => {
+        const c = document.createElement("button"); c.type = "button"; c.className = "chip";
+        c.textContent = m === 60 ? "1 Std." : m + " Min.";
+        c.addEventListener("click", () => startTimer(n, m));
+        tp.append(c);
+      });
+      const custom = document.createElement("input");
+      custom.type = "number"; custom.min = "1"; custom.max = "1440"; custom.placeholder = "Min."; custom.id = "tm-" + n.id;
+      custom.setAttribute("aria-label", "Eigene Minuten"); custom.inputMode = "numeric";
+      if (n.timerMin) custom.value = n.timerMin;
+      custom.addEventListener("keydown", e => { if (e.key === "Enter") startTimer(n, custom.value); });
+      const go = document.createElement("button"); go.type = "button"; go.className = "chip"; go.textContent = "Start";
+      go.addEventListener("click", () => startTimer(n, custom.value));
+      tp.append(custom, go);
+      body.append(tp);
+    }
+
+    const act = document.createElement("div"); act.className = "actions";
+    if (!n.done) {
+      const tb = document.createElement("button"); tb.className = "icon-btn"; tb.type = "button"; tb.innerHTML = ICON_TIMER;
+      tb.setAttribute("aria-label", "Timer stellen"); tb.setAttribute("aria-expanded", openPanel === n.id ? "true" : "false");
+      tb.addEventListener("click", () => { openPanel = openPanel === n.id ? null : n.id; unlock(); render(true); });
+      const ed = document.createElement("button"); ed.className = "icon-btn"; ed.type = "button"; ed.innerHTML = ICON_EDIT; ed.setAttribute("aria-label", "Bearbeiten");
+      ed.addEventListener("click", () => startEdit(n, p));
+      act.append(tb, ed);
+    }
+    const del = document.createElement("button"); del.className = "icon-btn"; del.type = "button"; del.innerHTML = ICON_DEL; del.setAttribute("aria-label", "In den Papierkorb");
+    del.addEventListener("click", () => {
+      n.deletedAt = Date.now(); n.alarm = null; n.timerEnd = null;
+      if (openPanel === n.id) openPanel = null;
+      save(); render(true);
+      statusEl.textContent = "„" + (n.text.length > 40 ? n.text.slice(0, 40) + "…" : n.text) + "“ liegt im Papierkorb.";
+    });
+    act.append(del);
+
+    li.append(cb, body, act);
+    return li;
+  }
+
+  function startEdit(n, p) {
+    editingId = n.id;
+    p.contentEditable = "true"; p.focus();
+    const r = document.createRange(); r.selectNodeContents(p); r.collapse(false);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    const body = p.parentElement;
+    const w = document.createElement("div"); w.className = "meta";
+    const d = document.createElement("input"); d.type = "date"; d.value = n.due || ""; d.id = "ed-d-" + n.id; d.setAttribute("aria-label", "Frist");
+    const t = document.createElement("input"); t.type = "time"; t.value = n.time || ""; t.id = "ed-t-" + n.id; t.setAttribute("aria-label", "Uhrzeit");
+    const ok = document.createElement("button"); ok.className = "add"; ok.type = "button"; ok.textContent = "Fertig"; ok.style.marginLeft = "0";
+    w.append(d, t, ok);
+    body.querySelectorAll(".when, .timer-panel").forEach(el => el.hidden = true);
+    body.append(w);
+    const finish = () => {
+      const txt = p.innerText.trim();
+      if (txt) n.text = txt;
+      const changed = n.due !== d.value || n.time !== (d.value ? t.value : "");
+      n.due = d.value; n.time = d.value ? t.value : "";
+      if (changed) {
+        n.deadlineAlerted = isOverdue(n);
+        if (n.alarm && n.alarm.kind === "deadline") n.alarm = null;
+      }
+      editingId = null; save(); render(true);
+    };
+    ok.addEventListener("click", finish);
+    p.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); finish(); }
+      if (e.key === "Escape") { editingId = null; render(true); }
+    });
+  }
+
+  // ---------- Papierkorb ----------
+  const TRASH_DAYS = 3, DAY = 86400000;
+  const fmtShort = new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  function purgeTrash() {
+    const limit = Date.now() - TRASH_DAYS * DAY, before = notes.length;
+    notes = notes.filter(n => !n.deletedAt || n.deletedAt > limit);
+    if (notes.length !== before) { save(); return true; }
+    return false;
+  }
+  function confirmButton(label, confirmLabel, onConfirm) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "mini danger"; b.textContent = label;
+    b.addEventListener("click", () => {
+      if (b.dataset.armed) { onConfirm(); return; }
+      b.dataset.armed = "1"; b.textContent = confirmLabel;
+      setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = label; } }, 3000);
+    });
+    return b;
+  }
+  function trashEl(n) {
+    const li = document.createElement("li"); li.className = "trash-item";
+    const body = document.createElement("div"); body.className = "body";
+    const p = document.createElement("p"); p.className = "text"; p.textContent = n.text;
+    const meta = document.createElement("span"); meta.className = "trash-meta";
+    meta.textContent = "Gelöscht " + fmtShort.format(new Date(n.deletedAt)) + " · endgültig weg am " + fmtShort.format(new Date(n.deletedAt + TRASH_DAYS * DAY));
+    body.append(p, meta);
+    const act = document.createElement("div"); act.className = "trash-actions";
+    const back = document.createElement("button"); back.type = "button"; back.className = "mini"; back.textContent = "Wiederherstellen";
+    back.addEventListener("click", () => {
+      delete n.deletedAt;
+      if (n.due) n.deadlineAlerted = isOverdue(n);
+      save(); render(true);
+    });
+    const kill = confirmButton("Endgültig löschen", "Wirklich?", () => { notes = notes.filter(x => x.id !== n.id); save(); render(true); });
+    act.append(back, kill);
+    li.append(body, act);
+    return li;
+  }
+  const emptyBtn = $("emptyTrash");
+  emptyBtn.addEventListener("click", () => {
+    if (emptyBtn.dataset.armed) { notes = notes.filter(n => !n.deletedAt); save(); render(true); delete emptyBtn.dataset.armed; emptyBtn.textContent = "Papierkorb leeren"; return; }
+    emptyBtn.dataset.armed = "1"; emptyBtn.textContent = "Wirklich alles löschen?";
+    setTimeout(() => { delete emptyBtn.dataset.armed; emptyBtn.textContent = "Papierkorb leeren"; }, 3000);
+  });
+
+  // Reihenfolge: fällige (Timer um oder Frist abgelaufen) ganz oben, dann nach Priorität, dann nach Frist.
+  function sortOpen(a, b) {
+    const fa = a.alarm || isOverdue(a) ? 0 : 1, fb = b.alarm || isOverdue(b) ? 0 : 1;
+    if (fa !== fb) return fa - fb;
+    if (a.prio !== b.prio) return a.prio - b.prio;
+    if (!fa) return ((b.alarm && b.alarm.at) || 0) - ((a.alarm && a.alarm.at) || 0);
+    const da = deadlineTs(a), db = deadlineTs(b);
+    if (da !== null && db !== null && da !== db) return da - db;
+    if (da !== null && db === null) return -1;
+    if (db !== null && da === null) return 1;
+    if (a.timerEnd && b.timerEnd) return a.timerEnd - b.timerEnd;
+    if (a.timerEnd) return -1; if (b.timerEnd) return 1;
+    return b.created - a.created;
+  }
+
+  function render(force) {
+    if (editingId && !force) { pendingRender = true; return; }
+    if (editingId && force && document.querySelector('.text[contenteditable="true"]')) {
+      // Während des Bearbeitens nicht neu zeichnen – das passiert, sobald man fertig ist.
+      const stillEditing = notes.some(n => n.id === editingId);
+      if (stillEditing) { pendingRender = true; return; }
+    }
+    pendingRender = false;
+    const live = notes.filter(n => !n.deletedAt);
+    const open = live.filter(n => !n.done).sort(sortOpen);
+    const done = live.filter(n => n.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+    const trash = notes.filter(n => n.deletedAt).sort((a, b) => b.deletedAt - a.deletedAt);
+    const ol = $("openList"), dl = $("doneList");
+    ol.replaceChildren(...open.map(itemEl));
+    if (!open.length) { const e = document.createElement("p"); e.className = "empty"; e.textContent = "Alles erledigt. Tippe aufs Mikrofon für eine neue Notiz."; ol.replaceChildren(e); }
+    dl.replaceChildren(...done.map(itemEl));
+    $("doneBox").hidden = !done.length;
+    $("doneCount").textContent = done.length ? "(" + done.length + ")" : "";
+    $("trashList").replaceChildren(...trash.map(trashEl));
+    $("trashBox").hidden = !trash.length;
+    $("trashCount").textContent = trash.length ? "(" + trash.length + ")" : "";
+    const dueCount = open.filter(n => n.alarm || isOverdue(n)).length;
+    $("count").textContent = open.length + " offen" + (dueCount ? " · " + dueCount + " fällig" : "");
+  }
+
+  // Sekündlich: Countdown aktualisieren und Alarme prüfen
+  function tick() {
+    document.querySelectorAll("[data-timer]").forEach(el => {
+      const n = notes.find(x => x.id === el.dataset.timer);
+      if (n && n.timerEnd) el.textContent = fmtLeft(n.timerEnd - Date.now());
+    });
+    checkAlarms();
+  }
+
+  // ---------- Version & Updates ----------
+  // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
+  const APP_VERSION = "1.4.0";
+  const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
+  const REPO_URL = "https://github.com/Renemoerke/SerNotes";
+  const SEEN_KEY = "sprachnotizen.seenVersion", CHECK_KEY = "sprachnotizen.lastCheck";
+  $("appVersion").textContent = "v" + APP_VERSION;
+
+  // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
+  const LOCAL_CHANGELOG = [
+    { version: "1.4.0", date: "2026-11-06", changes: ["Versionsanzeige, „Was ist neu?“ und Update-Prüfung über GitHub"] }
+  ];
+
+  function cmpVer(a, b) {
+    const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+    for (let i = 0; i < 3; i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d > 0 ? 1 : -1; }
+    return 0;
+  }
+  let remote = null;
+  async function fetchRemote() {
+    const r = await fetch(VERSION_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    remote = await r.json();
+    return remote;
+  }
+  const fmtDay = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  function showNews(list, onlyNewerThan) {
+    const body = $("newsBody");
+    let rels = (list || LOCAL_CHANGELOG).slice().sort((a, b) => cmpVer(b.version, a.version));
+    if (onlyNewerThan) rels = rels.filter(r => cmpVer(r.version, onlyNewerThan) > 0 && cmpVer(r.version, APP_VERSION) <= 0);
+    body.replaceChildren(...rels.map(rel => {
+      const box = document.createElement("div"); box.className = "rel";
+      const h = document.createElement("h3"); h.textContent = "Version " + rel.version;
+      if (rel.date) { const d = document.createElement("span"); d.className = "date"; const [y, m, dd] = rel.date.split("-").map(Number); d.textContent = fmtDay.format(new Date(y, m - 1, dd)); h.append(d); }
+      if (rel.version === APP_VERSION) { const n = document.createElement("span"); n.className = "now"; n.textContent = "installiert"; h.append(n); }
+      else if (cmpVer(rel.version, APP_VERSION) > 0) { const n = document.createElement("span"); n.className = "now"; n.textContent = "neu verfügbar"; h.append(n); }
+      const ul = document.createElement("ul");
+      (rel.changes || []).forEach(c => { const li = document.createElement("li"); li.textContent = c; ul.append(li); });
+      box.append(h, ul); return box;
+    }));
+    const link = document.createElement("p"); link.className = "set-note";
+    const a = document.createElement("a"); a.href = REPO_URL + "/blob/main/CHANGELOG.md"; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Kompletter Changelog auf GitHub";
+    link.append(a); body.append(link);
+    $("newsModal").hidden = false; $("newsClose").focus();
+  }
+  function closeNews() { $("newsModal").hidden = true; }
+  $("newsClose").addEventListener("click", closeNews);
+  $("newsModal").addEventListener("click", e => { if (e.target.id === "newsModal") closeNews(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("newsModal").hidden) closeNews(); });
+
+  $("showNews").addEventListener("click", async () => {
+    try { await fetchRemote(); } catch (e) {}
+    showNews(remote && remote.changelog);
+  });
+
+  async function checkUpdate(manual) {
+    const st = $("updStatus");
+    if (manual) st.textContent = "Suche nach Updates …";
+    try {
+      await fetchRemote();
+      try { localStorage.setItem(CHECK_KEY, String(Date.now())); } catch (e) {}
+      if (cmpVer(remote.version, APP_VERSION) > 0) {
+        $("updateText").textContent = "Version " + remote.version + " ist verfügbar (du hast " + APP_VERSION + ").";
+        $("updateBar").hidden = false;
+        st.textContent = "";
+      } else if (manual) st.textContent = "Du hast die neueste Version (" + APP_VERSION + ").";
+    } catch (e) {
+      if (manual) st.textContent = "Update-Prüfung fehlgeschlagen: GitHub ist gerade nicht erreichbar (" + e.message + ").";
+    }
+  }
+  $("checkUpdate").addEventListener("click", () => checkUpdate(true));
+  $("updateNews").addEventListener("click", () => showNews(remote && remote.changelog));
+  $("updateReload").addEventListener("click", () => {
+    // Neu laden ohne Browser-Cache. Die neue Datei liegt nach dem automatischen Upload schon auf dem Webspace.
+    const u = new URL(location.href); u.searchParams.set("v", remote ? remote.version : Date.now()); location.replace(u.toString());
+  });
+
+  // Nach einem Update einmal zeigen, was neu ist
+  (function afterUpdate() {
+    let seen = null; try { seen = localStorage.getItem(SEEN_KEY); } catch (e) {}
+    try { localStorage.setItem(SEEN_KEY, APP_VERSION); } catch (e) {}
+    if (seen && cmpVer(APP_VERSION, seen) > 0) {
+      fetchRemote().then(r => showNews(r.changelog, seen)).catch(() => showNews(LOCAL_CHANGELOG, seen));
+    }
+  })();
+  // Automatisch höchstens alle 6 Stunden prüfen
+  (function autoCheck() {
+    let last = 0; try { last = +localStorage.getItem(CHECK_KEY) || 0; } catch (e) {}
+    if (Date.now() - last > 6 * 3600000) checkUpdate(false);
+  })();
+
+  syncButtons();
+  purgeTrash();
+  render(true);
+  checkAlarms();
+  setInterval(tick, 1000);
+  setInterval(() => { purgeTrash(); render(false); }, 60000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{
+  "version": "1.4.0",
+  "date": "2026-11-06",
+  "changelog": [
+    {
+      "version": "1.4.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Versionsanzeige unten auf der Seite",
+        "„Was ist neu?“ zeigt den Changelog",
+        "Update-Prüfung über GitHub (automatisch alle 6 Stunden und per Knopf)",
+        "Nach einem Update wird einmal angezeigt, was sich geändert hat"
+      ]
+    },
+    {
+      "version": "1.3.1",
+      "date": "2026-11-05",
+      "changes": [
+        "Lautsprecher-Auswahl entfernt – der Alarm kommt aus dem Standard-Lautsprecher"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-11-05",
+      "changes": [
+        "Alarm-Einstellungen: Lautstärke und Alarmdauer (5 Sekunden bis „bis ich ihn ausschalte“)",
+        "Papierkorb: gelöschte Aufgaben bleiben 3 Tage wiederherstellbar",
+        "Neues Design im Sertronics-Look"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-11-05",
+      "changes": [
+        "Timer pro Aufgabe, auch per Sprache („in 10 Minuten“)",
+        "Alarmton, wenn ein Timer oder eine Frist abläuft",
+        "Fällige Aufgaben rutschen nach oben",
+        "Drei Prioritäten: Hoch, Mittel, Niedrig"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-11-05",
+      "changes": [
+        "Mikrofon-Auswahl, „USB 2.0 Camera Audio“ wird automatisch bevorzugt"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-11-05",
+      "changes": [
+        "Notizen per Sprachbefehl, die in Text umgewandelt werden",
+        "Aufgaben abhaken",
+        "Optionale Frist mit Datum und Uhrzeit, auch per Sprache („bis Freitag“)"
+      ]
+    }
+  ]
+}
