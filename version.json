@@ -1,7 +1,14 @@
 {
-  "version": "1.6.2",
+  "version": "1.6.3",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.6.3",
+      "date": "2026-11-06",
+      "changes": [
+        "Die heruntergeladene Datei heißt immer „SerNotes.html“"
+      ]
+    },
     {
       "version": "1.6.2",
       "date": "2026-11-06",

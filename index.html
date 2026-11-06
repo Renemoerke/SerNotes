@@ -999,7 +999,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // ---------- Version & Updates ----------
   // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
-  const APP_VERSION = "1.6.2";
+  const APP_VERSION = "1.6.3";
   const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
   const REPO_URL = "https://github.com/Renemoerke/SerNotes";
   const APP_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/index.html";
@@ -1010,6 +1010,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
   const LOCAL_CHANGELOG = [
+    { version: "1.6.3", date: "2026-11-06", changes: ["Download heißt immer „SerNotes.html“"] },
     { version: "1.6.2", date: "2026-11-06", changes: ["Neue Versionen werden sofort erkannt"] },
     { version: "1.6.1", date: "2026-11-06", changes: ["Farbschema nur noch Hell oder Dunkel"] },
     { version: "1.6.0", date: "2026-11-06", changes: ["Farbschema umschaltbar: Hell, Dunkel oder wie System", "„Nach Updates suchen“ ist jetzt in den Einstellungen"] },
@@ -1118,12 +1119,11 @@ details[open] summary h2::before { transform: rotate(90deg); }
       const html = await fetchRepoFile("index.html", APP_URL);
       const m = html.match(/const APP_VERSION = "([0-9.]+)"/);
       if (!m) throw new Error("Datei unvollständig");
-      const name = decodeURIComponent(location.pathname.split("/").pop() || "") || "SerNotes.html";
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      const a = document.createElement("a"); a.href = url; a.download = /\.html?$/i.test(name) ? name : "SerNotes.html";
+      const a = document.createElement("a"); a.href = url; a.download = "SerNotes.html";
       document.body.append(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-      updateMsg("Version " + m[1] + " ist heruntergeladen (Ordner „Downloads“). Ersetze damit die Datei, die du gerade geöffnet hast, und öffne sie neu. Deine Notizen bleiben erhalten, solange du denselben Browser nutzt.");
+      updateMsg("Version " + m[1] + " ist als „SerNotes.html“ heruntergeladen (Ordner „Downloads“). Ersetze damit deine bisherige Datei und öffne sie neu. Deine Notizen bleiben erhalten, solange du denselben Browser nutzt.");
     } catch (e) {
       updateMsg("Download fehlgeschlagen (" + e.message + "). Die neue Datei gibt es auch auf GitHub: " + REPO_URL);
     }

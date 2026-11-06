@@ -1,5 +1,8 @@
 # Changelog – SerNotes
 
+## 1.6.3 – 06.11.2026
+- Die heruntergeladene Datei heißt immer „SerNotes.html“
+
 ## 1.6.2 – 06.11.2026
 - Neue Versionen werden sofort erkannt – vorher konnte es durch den GitHub-Zwischenspeicher bis zu 5 Minuten dauern
 
