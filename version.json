@@ -1,7 +1,14 @@
 {
-  "version": "1.6.0",
+  "version": "1.6.1",
   "date": "2026-11-06",
   "changelog": [
+    {
+      "version": "1.6.1",
+      "date": "2026-11-06",
+      "changes": [
+        "Farbschema nur noch Hell oder Dunkel – die Option „Wie System“ ist entfernt"
+      ]
+    },
     {
       "version": "1.6.0",
       "date": "2026-11-06",

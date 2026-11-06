@@ -281,7 +281,6 @@ details[open] summary h2::before { transform: rotate(90deg); }
       <div class="seg" role="radiogroup" aria-labelledby="themeLabel">
         <input type="radio" name="theme" id="themeLight" value="light"><label for="themeLight" class="l2">Hell</label>
         <input type="radio" name="theme" id="themeDark" value="dark"><label for="themeDark" class="l2">Dunkel</label>
-        <input type="radio" name="theme" id="themeSystem" value="system" checked><label for="themeSystem" class="l2">Wie System</label>
       </div>
     </div>
 
@@ -604,20 +603,19 @@ details[open] summary h2::before { transform: rotate(90deg); }
   // ---------- Farbschema ----------
   const THEME_KEY = "sprachnotizen.theme";
   function applyTheme(t) {
-    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
-    else document.documentElement.removeAttribute("data-theme");
-    const dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", t);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() || (dark ? "#0a1d33" : "#0f2b4a");
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() || (t === "dark" ? "#0a1d33" : "#0f2b4a");
   }
-  let theme = "system"; try { theme = localStorage.getItem(THEME_KEY) || "system"; } catch (e) {}
-  ($("theme" + theme.charAt(0).toUpperCase() + theme.slice(1)) || $("themeSystem")).checked = true;
+  // Ohne gespeicherte Wahl startet die App einmalig passend zum System.
+  let theme = ""; try { theme = localStorage.getItem(THEME_KEY) || ""; } catch (e) {}
+  if (theme !== "light" && theme !== "dark") theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  $(theme === "dark" ? "themeDark" : "themeLight").checked = true;
   applyTheme(theme);
   document.querySelectorAll('input[name="theme"]').forEach(r => r.addEventListener("change", () => {
     theme = r.value; try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
     applyTheme(theme);
   }));
-  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => applyTheme(theme));
 
   // ---------- Einstellungen ----------
   const SET_KEY = "sprachnotizen.settings";
@@ -1001,7 +999,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // ---------- Version & Updates ----------
   // Bei jeder neuen Version hier UND in version.json die Nummer erhöhen.
-  const APP_VERSION = "1.6.0";
+  const APP_VERSION = "1.6.1";
   const VERSION_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/version.json";
   const REPO_URL = "https://github.com/Renemoerke/SerNotes";
   const APP_URL = "https://raw.githubusercontent.com/Renemoerke/SerNotes/main/index.html";
@@ -1012,6 +1010,7 @@ details[open] summary h2::before { transform: rotate(90deg); }
 
   // Changelog dieser Version (wird angezeigt, falls GitHub nicht erreichbar ist)
   const LOCAL_CHANGELOG = [
+    { version: "1.6.1", date: "2026-11-06", changes: ["Farbschema nur noch Hell oder Dunkel"] },
     { version: "1.6.0", date: "2026-11-06", changes: ["Farbschema umschaltbar: Hell, Dunkel oder wie System", "„Nach Updates suchen“ ist jetzt in den Einstellungen"] },
     { version: "1.5.0", date: "2026-11-06", changes: ["Lokal geöffnet: Update als Datei herunterladen", "Webspace: „Jetzt aktualisieren“ prüft erst, ob die neue Version schon auf dem Server liegt"] },
     { version: "1.4.1", date: "2026-11-06", changes: ["Knopf „Mikrofone suchen“ entfernt – das Mikrofon wählt der Browser in seiner eigenen Abfrage"] },

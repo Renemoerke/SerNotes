@@ -1,5 +1,8 @@
 # Changelog – SerNotes
 
+## 1.6.1 – 06.11.2026
+- Farbschema nur noch Hell oder Dunkel – die Option „Wie System“ ist entfernt
+
 ## 1.6.0 – 06.11.2026
 - Farbschema in den Einstellungen umschaltbar: Hell, Dunkel oder wie System
 - „Nach Updates suchen“ und die installierte Version sind jetzt in den Einstellungen
